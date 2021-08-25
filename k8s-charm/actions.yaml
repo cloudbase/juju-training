@@ -1,0 +1,11 @@
+# Copyright 2021 Ubuntu
+# See LICENSE file for licensing details.
+#
+
+fortune:
+  description: Returns a pithy phrase.
+  params:
+    fail:
+      description: "Fail with this message"
+      type: string
+      default: ""
