@@ -1,0 +1,14 @@
+# Copyright 2021 Ubuntu
+# See LICENSE file for licensing details.
+
+name: machine-charm
+display-name: |
+  My machine charm
+description: |
+  My machine charm description
+summary: |
+  My machine charm summary
+
+#
+# TODO: Add 'requires' database relation here.
+#
