@@ -1,0 +1,17 @@
+# Copyright 2021 Ubuntu
+# See LICENSE file for licensing details.
+#
+
+options:
+  thing:
+    default: 🎁
+    description: A thing used by the charm.
+    type: string
+  my-config-option:
+    default: this-is-a-default-value
+    description: My config option.
+    type: string
+  port:
+    default: 80
+    description: Nginx port
+    type: int
