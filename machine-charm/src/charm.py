@@ -56,15 +56,17 @@ class MachineCharmCharm(CharmBase):
         self.framework.observe(self.on.fortune_action, self._on_fortune_action)
         self.framework.observe(self.on.fetch_file_action,
                                self._on_fetch_file_action)
-        #
-        # TODO: Add database relation handlers here.
-        #
+        self.framework.observe(self.on["db"].relation_joined,
+                               self._on_db_relation_joined)
+        self.framework.observe(self.on["db"].relation_changed,
+                               self._on_db_relation_changed)
         self._stored.set_default(things=[])
 
     def _on_install(self, _):
         logger.info("Installing Nginx package")
         self.unit.status = MaintenanceStatus("Installing Nginx")
         self._install_apt_packages(["nginx"])
+        self._assert_status()
 
     def _on_config_changed(self, _):
         """Just an example to show how to deal with changed configuration.
@@ -87,8 +89,7 @@ class MachineCharmCharm(CharmBase):
     def _on_start(self, _):
         logger.info("Starting Nginx service")
         check_call(["systemctl", "start", "nginx"])
-        self.unit.status = ActiveStatus("Unit is ready")
-        self.app.status = ActiveStatus("Application is ready")
+        self._assert_status()
 
     def _on_fortune_action(self, event):
         """Just an example to show how to receive actions.
@@ -115,6 +116,29 @@ class MachineCharmCharm(CharmBase):
             event.set_results({"result": "Download succeded"})
         except Exception:
             event.set_results({"result": "Download failed"})
+
+    def _on_db_relation_joined(self, event):
+        rel = self.model.get_relation(event.relation.name, event.relation.id)
+        rel.data[self.unit]['database'] = self.app.name
+
+    def _on_db_relation_changed(self, event):
+        rel_data = event.relation.data.get(event.unit)
+        if not rel_data:
+            logger.info("No data for relation %s", event.relation.name)
+            return
+        logger.info("Relation data: %s", rel_data)
+        if 'master' in rel_data:
+            logger.info(">>>> Master: %s", rel_data['master'])
+            self._assert_status()
+
+    def _assert_status(self):
+        """Assert that the unit is in the expected state."""
+        rel_established = self.model.get_relation("db")
+        if not rel_established:
+            self.unit.status = BlockedStatus("Waiting for the db relation")
+            return
+        self.unit.status = ActiveStatus("Unit is ready")
+        self.app.status = ActiveStatus("Application is ready")
 
     def _install_apt_packages(self, packages: list):
         """Simple wrapper around 'apt-get install -y"""

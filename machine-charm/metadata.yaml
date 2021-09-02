@@ -9,6 +9,8 @@ description: |
 summary: |
   My machine charm summary
 
-#
-# TODO: Add 'requires' database relation here.
-#
+requires:
+  db:
+    interface: pgsql
+    limit: 1
+    optional: true
